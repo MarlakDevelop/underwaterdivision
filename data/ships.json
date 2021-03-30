@@ -1,0 +1,1 @@
+[{"id": 1, "sprite": "assets/sprites/ship/1.png", "cost": 0, "isBought": true, "isUsing": true}, {"id": 2, "sprite": "assets/sprites/ship/2.png", "cost": 100000, "isBought": false, "isUsing": false}, {"id": 3, "sprite": "assets/sprites/ship/3.png", "cost": 200000, "isBought": false, "isUsing": false}]

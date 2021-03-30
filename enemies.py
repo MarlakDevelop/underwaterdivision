@@ -50,7 +50,7 @@ class UberDemonEnemy(AbstractEnemy):
         self.max_hp = 1000
         self.reward = 1000
         self.speed = 0.8
-        self.radius = 60
+        self.radius = 80
         self.direction = {
             'x_cof': 0,
             'y_cof': 1
@@ -64,7 +64,7 @@ class SatanEnemy(AbstractEnemy):
         self.max_hp = 5000
         self.reward = 5000
         self.speed = 0.7
-        self.radius = 100
+        self.radius = 160
         self.direction = {
             'x_cof': 0,
             'y_cof': 1
