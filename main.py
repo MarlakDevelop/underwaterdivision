@@ -1,10 +1,8 @@
+import math
 import pygame
-import json
 from random import choice
-from datetime import datetime
-from player import TennoBathyscaphePlayer
-from enemies import DemonZombieEnemy, CacoDemonEnemy
-from bullets import DefaultBullet, BulletLvl2
+from player import FirstShipPlayer, SecondShipPlayer, ThirdShipPlayer
+from enemies import DemonZombieEnemy, CacoDemonEnemy, UberDemonEnemy, SatanEnemy
 import settings
 
 
@@ -20,21 +18,53 @@ class Game:
         }
         self.width, self.height = size
         self.spawnPlayer()
-        self.bullet_delay = settings.BULLET_DELAY
+        self.bullet_delay = 0
         self.enemies = []
         self.bullets = []
+        self.sounds = {
+            'bullet_collide_with_enemies': [
+                pygame.mixer.Sound('assets/sounds/bullet_collide_with_flesh/1.wav'),
+                pygame.mixer.Sound('assets/sounds/bullet_collide_with_flesh/2.wav')
+            ],
+            'demon_killed': [
+                pygame.mixer.Sound('assets/sounds/demon_killed/1.wav'),
+                pygame.mixer.Sound('assets/sounds/demon_killed/2.wav')
+            ],
+            'boss_awaken': [
+                pygame.mixer.Sound('assets/sounds/boss_awaken/uber.wav'),
+                pygame.mixer.Sound('assets/sounds/boss_awaken/satan.wav')
+            ]
+        }
+        self.sounds['boss_awaken'][1].set_volume(1.5)
 
     def spawnEnemy(self):
-        enemyType = choice(['zombie', 'zombie', 'zombie', 'zombie', 'caco'])
+        spawnByLvlChance = {
+            '1': ['zombie'],
+            '2': ['zombie', 'zombie', 'zombie', 'zombie', 'caco'],
+            '3': ['zombie', 'zombie', 'caco', 'caco', 'caco'],
+            '4': ['zombie', 'zombie', 'caco', 'caco', 'caco', 'caco', 'uber'],
+            '5': ['zombie', 'caco', 'caco', 'caco', 'caco', 'uber', 'uber'],
+            '6': ['zombie', 'caco', 'caco', 'uber', 'uber', 'uber', 'satan']
+        }
+        lvl = self.getCurrentLvl()
+        enemyType = choice(spawnByLvlChance[str(lvl)])
         enemy_ = None
         if enemyType == 'zombie':
             enemy_ = DemonZombieEnemy(choice(range(50, self.width - 50)), -50)
         elif enemyType == 'caco':
             enemy_ = CacoDemonEnemy(choice(range(50, self.width - 50)), -50)
+        elif enemyType == 'uber':
+            enemy_ = UberDemonEnemy(choice(range(50, self.width - 50)), -80)
+            self.sounds['boss_awaken'][0].play()
+            self.enemy_delay = round(600 / lvl)
+        elif enemyType == 'satan':
+            enemy_ = SatanEnemy(choice(range(50, self.width - 50)), -150)
+            self.sounds['boss_awaken'][1].play()
+            self.enemy_delay = round(1200 / lvl)
         self.enemies = self.enemies + [enemy_]
 
     def spawnPlayer(self):
-        self.player = TennoBathyscaphePlayer(self.width // 2, self.height - 50)
+        self.player = FirstShipPlayer(self.width // 2, self.height - 50)
 
     def handleEvents(self, events):
         global running
@@ -74,12 +104,16 @@ class Game:
             d = (len1 ** 2 + len2 ** 2) ** 0.5
             if d < enemy.radius + self.player.radius:
                 gameOver = True
+                self.player.death()
             elif d == self.player.radius + enemy.radius:
                 gameOver = True
+                self.player.death()
             elif d + self.player.radius == enemy.radius:
                 gameOver = True
+                self.player.death()
             elif d < enemy.radius - self.player.radius or d + self.player.radius < enemy.radius:
                 gameOver = True
+                self.player.death()
 
     def handleBulletsConnectWithEnemies(self):
         bullet_indexes = []
@@ -103,74 +137,39 @@ class Game:
         for i in bullet_indexes:
             try:
                 del self.bullets[i]
+                choice(self.sounds['bullet_collide_with_enemies']).play()
             except Exception:
                 pass
+
+    def getCurrentLvl(self):
+        if self.score < 500:
+            return 1
+        elif self.score < 1500:
+            return 2
+        elif self.score < 4500:
+            return 3
+        elif self.score < 13500:
+            return 4
+        elif self.score < 50500:
+            return 5
+        else:
+            return 6
 
     def tryShoot(self):
         if self.state['mousePressed']:
             if self.bullet_delay <= 0:
-                if self.score < 500:
-                    self.bullets.append(DefaultBullet(self.player.cords['x'], self.player.cords['y'] - self.player.radius))
-                elif self.score < 1500:
-                    self.bullets.append(DefaultBullet(self.player.cords['x'] - 15, self.player.cords['y'] - self.player.radius))
-                    self.bullets.append(DefaultBullet(self.player.cords['x'] + 15, self.player.cords['y'] - self.player.radius))
-                elif self.score < 4500:
-                    bullet = DefaultBullet(self.player.cords['x'] - 20, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.066
-                    self.bullets.append(bullet)
-                    self.bullets.append(DefaultBullet(self.player.cords['x'], self.player.cords['y'] - self.player.radius))
-                    bullet = DefaultBullet(self.player.cords['x'] + 20, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.066
-                    self.bullets.append(bullet)
-                elif self.score < 11500:
-                    bullet = DefaultBullet(self.player.cords['x'] - 30, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.1
-                    self.bullets.append(bullet)
-                    bullet = DefaultBullet(self.player.cords['x'] - 15, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.05
-                    self.bullets.append(bullet)
-                    self.bullets.append(DefaultBullet(self.player.cords['x'], self.player.cords['y'] - self.player.radius))
-                    bullet = DefaultBullet(self.player.cords['x'] + 15, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.066
-                    self.bullets.append(bullet)
-                    bullet = DefaultBullet(self.player.cords['x'] + 30, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.1
-                    self.bullets.append(bullet)
-                elif self.score < 18500:
-                    bullet = BulletLvl2(self.player.cords['x'] - 30, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.1
-                    self.bullets.append(bullet)
-                    bullet = BulletLvl2(self.player.cords['x'] - 15, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.05
-                    self.bullets.append(bullet)
-                    self.bullets.append(BulletLvl2(self.player.cords['x'], self.player.cords['y'] - self.player.radius))
-                    bullet = BulletLvl2(self.player.cords['x'] + 15, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.066
-                    self.bullets.append(bullet)
-                    bullet = BulletLvl2(self.player.cords['x'] + 30, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.1
-                    self.bullets.append(bullet)
-                else:
-                    bullet = BulletLvl2(self.player.cords['x'] - 30, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.1
-                    self.bullets.append(bullet)
-                    bullet = BulletLvl2(self.player.cords['x'] - 20, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.066
-                    self.bullets.append(bullet)
-                    bullet = BulletLvl2(self.player.cords['x'] - 10, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = -0.033
-                    self.bullets.append(bullet)
-                    self.bullets.append(BulletLvl2(self.player.cords['x'], self.player.cords['y'] - self.player.radius))
-                    bullet = BulletLvl2(self.player.cords['x'] + 10, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.033
-                    self.bullets.append(bullet)
-                    bullet = BulletLvl2(self.player.cords['x'] + 20, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.066
-                    self.bullets.append(bullet)
-                    bullet = BulletLvl2(self.player.cords['x'] + 30, self.player.cords['y'] - self.player.radius)
-                    bullet.direction['x_cof'] = 0.1
-                    self.bullets.append(bullet)
-                self.bullet_delay = settings.BULLET_DELAY
+                attackByLvl = {
+                    '1': lambda _: self.player.attack.lvl1(),
+                    '2': lambda _: self.player.attack.lvl2(),
+                    '3': lambda _: self.player.attack.lvl3(),
+                    '4': lambda _: self.player.attack.lvl4(),
+                    '5': lambda _: self.player.attack.lvl5(),
+                    '6': lambda _: self.player.attack.lvl6(),
+                }
+                lvl = self.getCurrentLvl()
+                result = attackByLvl[str(lvl)]('_')
+                self.bullets += result[0]
+                self.bullet_delay = result[1]
 
     def updateBullets(self):
         indexes = []
@@ -209,6 +208,7 @@ class Game:
             try:
                 self.score += self.enemies[i].reward
                 del self.enemies[i]
+                choice(self.sounds['demon_killed']).play()
             except Exception:
                 pass
 
@@ -235,6 +235,10 @@ class Game:
             ))
         for bullet in self.bullets:
             pygame.draw.circle(screen, pygame.Color('#FFFFFF'), (bullet.cords['x'], bullet.cords['y']), bullet.radius)
+        scoreFont = pygame.font.Font(None, 36)
+        score = scoreFont.render(f'Очки силы: {game.score}', True, (0, 180, 0))
+        pygame.draw.rect(screen, pygame.Color('green'), (0, 0, self.width, 20 + score.get_height()))
+        screen.blit(score, (self.width // 2 - score.get_width() // 2, 10))
 
     def restart(self):
         self.enemy_delay_down_delay = settings.ENEMY_DELAY_LOWER_DELAY
@@ -247,7 +251,7 @@ class Game:
         }
         self.width, self.height = size
         self.spawnPlayer()
-        self.bullet_delay = settings.BULLET_DELAY
+        self.bullet_delay = 0
         self.enemies = []
         self.bullets = []
 
@@ -281,12 +285,9 @@ while running:
         game.handleEnemiesConnectWithPlayer()
         game.handleBulletsConnectWithEnemies()
         game.render()
+        game.player.update()
         game.tryShoot()
         game.handleForGameOver()
-        scoreFont = pygame.font.Font(None, 36)
-        score = scoreFont.render(f'Очки силы: {game.score}', True,
-                                 (0, 180, 0))
-        screen.blit(score, (10, 10))
     else:
         game.handleGameOverEvents(pygame.event.get())
         game.gameOverRender()
