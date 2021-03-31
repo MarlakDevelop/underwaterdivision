@@ -11,13 +11,14 @@ class AbstractAttack:
         self.sound = pygame.mixer.Sound('assets/sounds/shots/middleshot.wav')
 
     def playSound(self):
-        self.sound.play()
+        pygame.mixer.Channel(3).play(self.sound)
 
 
 class FirstShipAttack(AbstractAttack):
     def __init__(self):
         super().__init__()
         self.sound = pygame.mixer.Sound('assets/sounds/shots/middleshot.wav')
+        self.sound.set_volume(0.5)
 
     def lvl1(self):
         bullet = bullets.BulletLvl1(self.x, self.y)
@@ -73,6 +74,7 @@ class SecondShipAttack(AbstractAttack):
         self.speed = 2
         self.damage = 0.7
         self.sound = pygame.mixer.Sound('assets/sounds/shots/weakshot.wav')
+        self.sound.set_volume(0.5)
 
     def lvl1(self):
         bullet = bullets.BulletLvl1(self.x, self.y)
@@ -138,6 +140,7 @@ class ThirdShipAttack(AbstractAttack):
         self.speed = 0.5
         self.damage = 3
         self.sound = pygame.mixer.Sound('assets/sounds/shots/strongshot.wav')
+        self.sound.set_volume(0.5)
 
     def lvl1(self):
         bullet = bullets.BulletLvl1(self.x, self.y)

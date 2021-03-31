@@ -1,3 +1,6 @@
+import pygame
+
+
 class AbstractEnemy:
     def __init__(self, x, y):
         self.hp = 0
@@ -13,6 +16,8 @@ class AbstractEnemy:
             'x_cof': 0,
             'y_cof': 0
         }
+        self.sprite = pygame.transform.scale(pygame.image.load('assets/sprites/demons/zombie/1.png'),
+                                             (self.radius, self.radius))
 
 
 class DemonZombieEnemy(AbstractEnemy):
@@ -27,6 +32,8 @@ class DemonZombieEnemy(AbstractEnemy):
             'x_cof': 0,
             'y_cof': 1
         }
+        self.sprite = pygame.transform.scale(pygame.image.load('assets/sprites/demons/zombie/1.png'),
+                                             (self.radius * 2, self.radius * 2))
 
 
 class CacoDemonEnemy(AbstractEnemy):
@@ -41,6 +48,8 @@ class CacoDemonEnemy(AbstractEnemy):
             'x_cof': 0,
             'y_cof': 1
         }
+        self.sprite = pygame.transform.scale(pygame.image.load('assets/sprites/demons/caco/1.png'),
+                                             (self.radius * 2, self.radius * 2))
 
 
 class UberDemonEnemy(AbstractEnemy):
@@ -55,6 +64,8 @@ class UberDemonEnemy(AbstractEnemy):
             'x_cof': 0,
             'y_cof': 1
         }
+        self.sprite = pygame.transform.scale(pygame.image.load('assets/sprites/demons/caco/1.png'),
+                                             (self.radius * 2, self.radius * 2))
 
 
 class SatanEnemy(AbstractEnemy):
@@ -64,8 +75,10 @@ class SatanEnemy(AbstractEnemy):
         self.max_hp = 5000
         self.reward = 5000
         self.speed = 0.7
-        self.radius = 160
+        self.radius = 100
         self.direction = {
             'x_cof': 0,
             'y_cof': 1
         }
+        self.sprite = pygame.image.load('assets/sprites/demons/satan/2.png')
+        self.sprite = pygame.transform.scale(self.sprite, (self.radius * 6, self.radius * 2))

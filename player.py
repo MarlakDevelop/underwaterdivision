@@ -14,11 +14,17 @@ class AbstractPlayer:
         self.deathSound = pygame.mixer.Sound('assets/sounds/player_killed.wav')
         self.deathSound.set_volume(5)
         self.sprite = pygame.transform.scale(pygame.image.load('assets/sprites/ship/1.png'), (self.radius, self.radius))
+        self.sprite.set_colorkey((255, 255, 255))
         self.rotation_angle = 0
+        self.dead = False
         self.rotated_sprite = self.sprite
 
+    def respawn(self):
+        self.dead = False
+
     def death(self):
-        self.deathSound.play()
+        self.dead = True
+        pygame.mixer.Channel(0).play(self.deathSound)
 
     def update(self):
         self.attack.x, self.attack.y = self.cords['x'], self.cords['y'] - self.radius // 2
